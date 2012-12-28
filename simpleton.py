@@ -6,8 +6,15 @@
 # To Public License, Version 2, as published by Sam Hocevar. See
 # http://sam.zoy.org/wtfpl/COPYING for more details.
 
-import time, os, sys
-import urllib, ftplib, smtplib, yaml
+import time
+import os
+import sys
+import urllib
+import ftplib
+import smtplib
+import yaml
+import subprocess
+import tempfile
 from termcolor import colored, cprint
 
 if len(sys.argv) < 2 or not os.path.exists(sys.argv[1]):
@@ -28,8 +35,15 @@ for k, v in services.items():
                 ftplib.FTP(u)
             if k == 'SMTP':
                 smtplib.SMTP(u)
+            if k == 'AFP':
+                tmp_path = tempfile.mkdtemp()
+                subprocess.check_call(['/sbin/mount_afp', '-o', 'nobrowse', u, tmp_path])
+                subprocess.check_call(['/sbin/umount', tmp_path])
+                os.rmdir(tmp_path)
+
             passed += 1
         except Exception, e:
+            print e
             out = colored(msg, 'red')
 
         print out
