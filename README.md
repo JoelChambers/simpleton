@@ -8,21 +8,16 @@ Installation
 ============
 1. Install prerequisites:
     
-        sudo pip install pyyaml termcolor
+        sudo pip install termcolor
 
-2. Create your ~/.simpleton.yaml file:
+2. Create your ~/.simpleton file:
 
-        HTTP:
-            - http://intra.example.com
+        http://intra.example.com
+        smtp://mail.example.com
+        ftp://files.example.com
+        afp://username:password@files.example.com/share
 
-        SMTP:
-            - mail.example.com
-
-        FTP:
-            - files.example.com
-
-        AFP:
-            - username:password@files.example.com/share
+3. Run simpleton.py
 
 Todo
 ====

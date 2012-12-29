@@ -12,40 +12,39 @@ import sys
 import urllib
 import ftplib
 import smtplib
-import yaml
+import urlparse
 import subprocess
 import tempfile
 from termcolor import colored, cprint
 
 if len(sys.argv) < 2 or not os.path.exists(sys.argv[1]):
-    fh = open(os.path.join(os.getenv('HOME'), '.simpleton.yaml'))
+    fh = open(os.path.join(os.getenv('HOME'), '.simpleton'))
 
-services = yaml.load(fh)
 tests, passed, started = (0, 0, time.time())
 
-for k, v in services.items():
-    for u in v:
-        tests += 1
-        msg = '* testing %s: %s' % (k, u)
-        out = colored(msg, 'green')
-        try:
-            if k == 'HTTP':
-                urllib.urlopen(u)
-            if k == 'FTP':
-                ftplib.FTP(u)
-            if k == 'SMTP':
-                smtplib.SMTP(u)
-            if k == 'AFP':
-                tmp_path = tempfile.mkdtemp()
-                subprocess.check_call(['/sbin/mount_afp', '-o', 'nobrowse', u, tmp_path])
-                subprocess.check_call(['/sbin/umount', tmp_path])
-                os.rmdir(tmp_path)
+for l in fh.readlines():
+    url = l.strip()
+    parsed = urlparse.urlparse(url)
+    tests += 1
+    msg = '* testing %s' % (url)
+    out = colored(msg, 'green')
 
-            passed += 1
-        except Exception, e:
-            print e
-            out = colored(msg, 'red')
+    try:
+        if parsed.scheme == 'http':
+            urllib.urlopen(url)
+        if parsed.scheme == 'ftp':
+            ftplib.FTP(parsed.netloc)
+        if parsed.scheme == 'smtp':
+            smtplib.SMTP(parsed.netloc)
+        if parsed.scheme == 'afp':
+            tmp_path = tempfile.mkdtemp()
+            subprocess.check_call(['/sbin/mount_afp', '-o', 'nobrowse', url, tmp_path])
+            subprocess.check_call(['/sbin/umount', tmp_path])
+            os.rmdir(tmp_path)
+        passed += 1
+    except Exception, e:
+        out = colored(msg, 'red')
 
-        print out
+    print out
 
 print '%d of %d tests passed in %d seconds' % (passed, tests, int(time.time() - started))
